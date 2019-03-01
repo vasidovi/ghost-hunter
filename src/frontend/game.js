@@ -83,21 +83,22 @@ PIXI.Loader.shared
 	.add("images/ghost-hunter.json")
 	.load(setup);
 
-let hunter, state;	
+let hunter, state;
+
 function setup() {
 	let textures = PIXI.Loader.shared.resources["images/ghost-hunter.json"].textures;
 	stageMap(textures);
 
 	hunter = stageHunter();
-	
+
 	app.stage.addChild(hunter);
 	state = play;
- 
+
 	app.ticker.add(delta => gameLoop(delta));
 }
 
-function gameLoop(delta){
-  state(delta);
+function gameLoop(delta) {
+	state(delta);
 }
 
 function play(delta) {
@@ -105,92 +106,136 @@ function play(delta) {
 }
 
 let left = keyboard(37),
-up = keyboard(38),
-right = keyboard(39),
-down = keyboard(40);
+	up = keyboard(38),
+	right = keyboard(39),
+	down = keyboard(40);
 
-
-left.press = function() {
-	hunter.x -= tileSize;
-};
-right.press = function () {
-	hunter.x += tileSize;
+const impassableTiles = {
+	"hunter": ["solid", "boundary"],
 }
 
-up.press = function() {
-	hunter.y -= tileSize;
+function isPassableTile(creature, tile) {
+
+	if ('types' in tile) {
+
+		const types = tile.types;
+		const obstacles = impassableTiles[creature] || [];
+		for (const obstacle of obstacles) {
+			let foundObstacle = types.find(function (type) {
+				return type == obstacle
+			});
+			if (foundObstacle) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+left.press = function () {
+	const row = Math.round(hunter.y / tileSize);
+	const col = Math.round((hunter.x - tileSize) / tileSize);
+	if (col < 0) {
+		return;
+	}
+	if (isPassableTile("hunter", map[row][col])) {
+		hunter.x -= tileSize;
+	}
+};
+
+right.press = function () {
+	const row = Math.round(hunter.y / tileSize);
+	const col = Math.round((hunter.x + tileSize) / tileSize);
+
+	if (col >= mapWidth) {
+		return;
+	}
+	if (isPassableTile("hunter", map[row][col])) {
+		hunter.x += tileSize;
+	}
+
+}
+
+up.press = function () {
+	const row = Math.round((hunter.y - tileSize) / tileSize);
+	const col = Math.round(hunter.x / tileSize);
+	if (row < 0){
+		return;
+	}
+	if (isPassableTile("hunter", map[row][col])) {
+		hunter.y -= tileSize;
+		}
 };
 
 down.press = function () {
-	hunter.y += tileSize;
-}
+	const row = Math.round((hunter.y + tileSize) / tileSize);
+	const col = Math.round(hunter.x / tileSize);
+	if (row >= mapHeight){
+		return;
+	}
+	if (isPassableTile("hunter", map[row][col])) {
+		hunter.y += tileSize;
+		}
+};
 
 
 function keyboard(keyCode) {
-  var key = {};
-  key.code = keyCode;
-  key.isDown = false;
-  key.isUp = true;
-  key.press = undefined;
-  key.release = undefined;
-  //The `downHandler`
-  key.downHandler = function(event) {
-    if (event.keyCode === key.code) {
-      if (key.isUp && key.press) key.press();
-      key.isDown = true;
-      key.isUp = false;
-    }
-    event.preventDefault();
-  };
-  //The `upHandler`
-  key.upHandler = function(event) {
-    if (event.keyCode === key.code) {
-      if (key.isDown && key.release) key.release();
-      key.isDown = false;
-      key.isUp = true;
-    }
-    event.preventDefault();
-  };
-  //Attach event listeners
-  window.addEventListener(
-    "keydown", key.downHandler.bind(key), false
-  );
-  window.addEventListener(
-    "keyup", key.upHandler.bind(key), false
-  );
-  return key;
+	var key = {};
+	key.code = keyCode;
+	key.isDown = false;
+	key.isUp = true;
+	key.press = undefined;
+	key.release = undefined;
+	//The `downHandler`
+	key.downHandler = function (event) {
+		if (event.keyCode === key.code) {
+			if (key.isUp && key.press) key.press();
+			key.isDown = true;
+			key.isUp = false;
+		}
+		event.preventDefault();
+	};
+	//The `upHandler`
+	key.upHandler = function (event) {
+		if (event.keyCode === key.code) {
+			if (key.isDown && key.release) key.release();
+			key.isDown = false;
+			key.isUp = true;
+		}
+		event.preventDefault();
+	};
+	//Attach event listeners
+	window.addEventListener(
+		"keydown", key.downHandler.bind(key), false
+	);
+	window.addEventListener(
+		"keyup", key.upHandler.bind(key), false
+	);
+	return key;
 }
-
-
-
-
-
-
-
 
 function stageHunter() {
 
 	const hunterState = "hunter_idle";
 	const names = textureNames.characters[hunterState];
 
-let textureArray = [];
+	let textureArray = [];
 
-for (let i=0; i < names.length; i++)
-{
-     let texture = PIXI.Texture.from(names[i]);
-     textureArray.push(texture);
-};
+	for (let i = 0; i < names.length; i++) {
+		let texture = PIXI.Texture.from(names[i]);
+		textureArray.push(texture);
+	};
 
-let animatedSprite = new PIXI.AnimatedSprite(textureArray);
+	let animatedSprite = new PIXI.AnimatedSprite(textureArray);
 
- animatedSprite.x = 32;
- animatedSprite.y = 32;
- animatedSprite.width =tileSize;
- animatedSprite.height = tileSize;
- animatedSprite.animationSpeed = 0.15;
- animatedSprite.play();
+	animatedSprite.x = tileSize;
+	animatedSprite.y = tileSize;
+	animatedSprite.width = tileSize;
+	animatedSprite.height = tileSize;
+	animatedSprite.animationSpeed = 0.15;
+	animatedSprite.play();
 
-return animatedSprite;
+	return animatedSprite;
 }
 
 
@@ -237,17 +282,22 @@ function setGround(map) {
 function setBoundaries(map) {
 	for (let row = 0; row < mapWidth; row++) {
 		map[row][0].tile = TILES.border;
+		map[row][0].types = ["solid", "boundary"];
 		map[row][mapHeight - 1].tile = TILES.border;
+		map[row][mapHeight - 1].types = ["solid", "boundary"];
 	}
 
 	for (let col = 0; col < mapHeight; col++) {
 		map[0][col].tile = TILES.border;
+		map[0][col].types = ["solid", "boundary"];
 		map[mapWidth - 1][col].tile = TILES.border;
+		map[mapWidth - 1][col].types = ["solid", "boundary"];
 	}
 }
 
 function setExitPoint(map) {
 	map[1][mapWidth - 2].tile = TILES.exit;
+	map[1][mapWidth - 2].types =["exit"];
 }
 
 function randomInt(min, max) {
