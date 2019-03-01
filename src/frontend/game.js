@@ -11,16 +11,26 @@ let Sprite = PIXI.Sprite;
 $.get("images/ghost-hunter.json", function (data) {
 	const imagesNames = Object.keys(data.frames);
 
-	for (let tileKey in TILES) {
-		const regExp = RegExp(TILES[tileKey] + "( \\(\\d*\\))?.png");
-
-		const names = imagesNames.filter(
-			name => regExp.test(name)
-		);
-		tileNames[tileKey] = names;
+	for (let key in TILES) {
+		textureNames.tiles[key] = getTextureNames(imagesNames, TILES[key]);
 	}
-	console.log(tileNames);
+
+	for (let characterKey in CHARACTERS) {
+		for (let actionKey in ACTIONS) {
+			const key = CHARACTERS[characterKey] + "_" + ACTIONS[actionKey];
+			textureNames.characters[key] = getTextureNames(imagesNames, key);
+		}
+	}
 });
+
+function getTextureNames(imagesNames, nameRoot) {
+
+	const regExp = RegExp(nameRoot + "( \\(\\d*\\))?.png");
+	return imagesNames.filter(
+		name => regExp.test(name)
+	);
+
+}
 
 const app = new PIXI.Application();
 
@@ -34,13 +44,16 @@ app.renderer.resize(window.innerHeight, window.innerHeight);
 
 document.body.appendChild(app.view);
 
-
-
 const tileNames = {};
+const textureNames = {
+	"tiles": {},
+	"characters": {}
+};
+
 const map = [];
 const mapWidth = 10;
 const mapHeight = 10;
-const tileSize =  window.innerHeight / mapHeight;
+const tileSize = window.innerHeight / mapHeight;
 
 const TILES = {
 	"ground": "ground",
@@ -50,9 +63,14 @@ const TILES = {
 }
 
 const ACTIONS = {
-	"idle" : "idle",
-	"attack" : "attack",
-	"hurt" : "hurt"
+	"idle": "idle",
+	"attack": "attack",
+	"hurt": "hurt"
+}
+
+const CHARACTERS = {
+	"hunter": "hunter",
+	"ghost": "ghost"
 }
 
 setGround(map);
@@ -65,27 +83,131 @@ PIXI.Loader.shared
 	.add("images/ghost-hunter.json")
 	.load(setup);
 
+let hunter, state;	
 function setup() {
-	let textureNames = PIXI.Loader.shared.resources["images/ghost-hunter.json"].textures;
-	stageMap(textureNames); 
-	stageHunter(textureNames);
+	let textures = PIXI.Loader.shared.resources["images/ghost-hunter.json"].textures;
+	stageMap(textures);
+
+	hunter = stageHunter();
+	
+	app.stage.addChild(hunter);
+	state = play;
+ 
+	app.ticker.add(delta => gameLoop(delta));
+}
+
+function gameLoop(delta){
+  state(delta);
+}
+
+function play(delta) {
+
+}
+
+let left = keyboard(37),
+up = keyboard(38),
+right = keyboard(39),
+down = keyboard(40);
+
+
+left.press = function() {
+	hunter.x -= tileSize;
+};
+right.press = function () {
+	hunter.x += tileSize;
+}
+
+up.press = function() {
+	hunter.y -= tileSize;
+};
+
+down.press = function () {
+	hunter.y += tileSize;
 }
 
 
-function stageMap(textureNames){
+function keyboard(keyCode) {
+  var key = {};
+  key.code = keyCode;
+  key.isDown = false;
+  key.isUp = true;
+  key.press = undefined;
+  key.release = undefined;
+  //The `downHandler`
+  key.downHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isUp && key.press) key.press();
+      key.isDown = true;
+      key.isUp = false;
+    }
+    event.preventDefault();
+  };
+  //The `upHandler`
+  key.upHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isDown && key.release) key.release();
+      key.isDown = false;
+      key.isUp = true;
+    }
+    event.preventDefault();
+  };
+  //Attach event listeners
+  window.addEventListener(
+    "keydown", key.downHandler.bind(key), false
+  );
+  window.addEventListener(
+    "keyup", key.upHandler.bind(key), false
+  );
+  return key;
+}
+
+
+
+
+
+
+
+
+function stageHunter() {
+
+	const hunterState = "hunter_idle";
+	const names = textureNames.characters[hunterState];
+
+let textureArray = [];
+
+for (let i=0; i < names.length; i++)
+{
+     let texture = PIXI.Texture.from(names[i]);
+     textureArray.push(texture);
+};
+
+let animatedSprite = new PIXI.AnimatedSprite(textureArray);
+
+ animatedSprite.x = 32;
+ animatedSprite.y = 32;
+ animatedSprite.width =tileSize;
+ animatedSprite.height = tileSize;
+ animatedSprite.animationSpeed = 0.15;
+ animatedSprite.play();
+
+return animatedSprite;
+}
+
+
+function stageMap(textures) {
 	for (let row = 0; row < mapWidth; row++) {
 		for (let col = 0; col < mapHeight; col++) {
 
 			const tileType = map[row][col].tile;
-			const names = tileNames[tileType];
+			const names = textureNames.tiles[tileType];
 			const name = names[randomInt(0, names.length - 1)];
-			const texture = textureNames[name];
+			const texture = textures[name];
 
 			texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 			let tile = new Sprite(texture);
 			tile.width = tileSize;
-	
+
 			tile.height = tileSize;
 
 			tile.y = row * tileSize;
