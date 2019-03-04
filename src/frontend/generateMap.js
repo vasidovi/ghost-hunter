@@ -34,3 +34,7 @@ export function setExitPoint(map) {
 	map[1][constants.mapWidth - 2].tile = constants.TILES.exit;
 	map[1][constants.mapWidth - 2].types = ["exit"];
 }
+
+export function setStartPoint(map) {
+	map[1][1].types = ["startPoint"];
+}

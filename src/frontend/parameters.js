@@ -24,7 +24,6 @@ export const CHARACTERS = {
 	"ghost": "ghost"
 }
 
-
 export const textureNames = {
 	"tiles": {},
 	"characters": {}

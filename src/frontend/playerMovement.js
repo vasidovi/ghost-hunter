@@ -26,47 +26,39 @@ function isPassableTile(creature, tile) {
 }
 
 left.press = function () {
-	const row = Math.round(hunter.y / constants.tileSize);
-	const col = Math.round((hunter.x - constants.tileSize) / constants.tileSize);
-	if (col < 0) {
+
+	if (hunter.x-1 < 0) {
 		return;
 	}
-	if (isPassableTile("hunter", map[row][col])) {
-		hunter.x -= constants.tileSize;
+	if (isPassableTile("hunter", map[hunter.x-1][hunter.y])) {
+		hunter.x -= 1;
 	}
 };
 
 right.press = function () {
-	const row = Math.round(hunter.y / constants.tileSize);
-	const col = Math.round((hunter.x + constants.tileSize) / constants.tileSize);
-
-	if (col >= constants.mapWidth) {
+	if (hunter.x+1 >= constants.mapWidth) {
 		return;
 	}
-	if (isPassableTile("hunter", map[row][col])) {
-		hunter.x += constants.tileSize;
+	if (isPassableTile("hunter", map[hunter.x+1][hunter.y])) {
+		hunter.x += 1;
 	}
 
 }
 
 up.press = function () {
-	const row = Math.round((hunter.y - constants.tileSize) / constants.tileSize);
-	const col = Math.round(hunter.x / constants.tileSize);
-	if (row < 0){
+	if (hunter.y-1 < 0){
 		return;
 	}
-	if (isPassableTile("hunter", map[row][col])) {
-		hunter.y -= constants.tileSize;
-		}
+	if (isPassableTile("hunter", map[hunter.x][hunter.y-1])) {
+		hunter.y -= 1;
+	}
 };
 
 down.press = function () {
-	const row = Math.round((hunter.y + constants.tileSize) / constants.tileSize);
-	const col = Math.round(hunter.x / constants.tileSize);
-	if (row >= constants.mapHeight){
+	if (hunter.y+1 >= constants.mapHeight){
 		return;
 	}
-	if (isPassableTile("hunter", map[row][col])) {
-		hunter.y += constants.tileSize;
+	if (isPassableTile("hunter", map[hunter.x][hunter.y+1])) {
+		hunter.y += 1;
 		}
 };
