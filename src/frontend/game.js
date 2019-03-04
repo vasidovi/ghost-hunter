@@ -8,7 +8,7 @@ let Sprite = PIXI.Sprite,
 	loader = PIXI.Loader.shared;
 
 const app = new PIXI.Application();
-export const map = [];
+export const map = [], initiatives = [];
 export let hunter, ghost, state;
 
 
@@ -44,6 +44,8 @@ ghost = new Ghost(
 	constants.tileSize
 );
 
+initiatives.push(hunter);
+initiatives.push(ghost);
 
 constants.initializeContstants(initialize);
 
@@ -94,11 +96,30 @@ function setup() {
 	app.ticker.add(delta => gameLoop(delta));
 }
 
+let timeElapsed = 0;
 function gameLoop(delta) {
 	state(delta);
+
 }
 
+const turnTime = 15;
+
 function play(delta) {
+	timeElapsed += delta;
+	if (initiatives[0] != hunter) {
+		if (timeElapsed > turnTime) {
+			const character = nextCharacter();
+			// takeAction();
+
+			if (hunter.x < character.x){
+			character.x -= 1;
+			} else {
+				character.x += 1;
+			}
+			
+			timeElapsed -= turnTime;
+		}
+	}
 
 }
 
@@ -122,8 +143,8 @@ function createCharacterSprite(character) {
 	animatedSprite.width = character.width;
 	animatedSprite.height = character.height;
 	animatedSprite.animationSpeed = 0.15;
-	if (character.opacity){
-	animatedSprite.alpha = character.opacity;
+	if (character.opacity) {
+		animatedSprite.alpha = character.opacity;
 	}
 	animatedSprite.play();
 
@@ -164,6 +185,13 @@ function setApplicationStyle(app) {
 	app.renderer.view.style.transform = "translate3d( -50%, -50%, 0 )";
 	app.renderer.autoDensity = true;
 	app.renderer.resize(window.innerHeight, window.innerHeight);
+}
+
+
+export function nextCharacter() {
+	const character = initiatives.shift();
+	initiatives.push(character);
+	return character;
 }
 
 // Map Layer // 

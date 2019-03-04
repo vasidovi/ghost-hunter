@@ -1,4 +1,4 @@
-import {hunter, map} from "./game.js";
+import {hunter, map, nextCharacter} from "./game.js";
 import * as constants from "./constants.js";
 import {keyboard} from "./keyboardControl.js";
 
@@ -32,6 +32,7 @@ left.press = function () {
 	}
 	if (isPassableTile("hunter", map[hunter.x-1][hunter.y])) {
 		hunter.x -= 1;
+		nextCharacter();		
 	}
 };
 
@@ -41,6 +42,7 @@ right.press = function () {
 	}
 	if (isPassableTile("hunter", map[hunter.x+1][hunter.y])) {
 		hunter.x += 1;
+		nextCharacter();
 	}
 
 }
@@ -51,6 +53,7 @@ up.press = function () {
 	}
 	if (isPassableTile("hunter", map[hunter.x][hunter.y-1])) {
 		hunter.y -= 1;
+		nextCharacter();
 	}
 };
 
@@ -60,5 +63,6 @@ down.press = function () {
 	}
 	if (isPassableTile("hunter", map[hunter.x][hunter.y+1])) {
 		hunter.y += 1;
+		nextCharacter();
 		}
 };
