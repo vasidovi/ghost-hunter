@@ -1,4 +1,4 @@
-import * as constants from "./parameters.js";
+import * as constants from "./constants.js";
 
 
 export function setGround(map) {
@@ -36,5 +36,10 @@ export function setExitPoint(map) {
 }
 
 export function setStartPoint(map) {
-	map[1][1].types = ["startPoint"];
+	map[1][1].types = ["start_point"];
 }
+
+export function setHauntedSpots(map){
+	map[4][4].tile = constants.TILES.haunted_spot;
+  map[4][4].types = ["haunted_spot"];	
+} 

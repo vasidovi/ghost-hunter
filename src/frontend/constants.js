@@ -9,7 +9,7 @@ export const impassableTiles = {
 export const TILES = {
 	"ground": "ground",
 	"exit": "exit",
-	"hauntedSpot": "haunted_spot",
+	"haunted_spot": "haunted_spot",
 	"border": "border"
 }
 

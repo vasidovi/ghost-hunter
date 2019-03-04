@@ -1,5 +1,5 @@
 import {hunter, map} from "./game.js";
-import * as constants from "./parameters.js";
+import * as constants from "./constants.js";
 import {keyboard} from "./keyboardControl.js";
 
 let left = keyboard(37),
