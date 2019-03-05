@@ -104,23 +104,47 @@ function gameLoop(delta) {
 
 const turnTime = 15;
 
-function play(delta) {
-	timeElapsed += delta;
-	if (initiatives[0] != hunter) {
-		if (timeElapsed > turnTime) {
-			const character = nextCharacter();
-			// takeAction();
 
-			if (hunter.x < character.x){
-			character.x -= 1;
-			} else {
-				character.x += 1;
-			}
-			
+function play(delta) {
+	if (initiatives[0] != hunter) {
+		timeElapsed += delta;
+		if (timeElapsed > turnTime) {			
+			const character = nextCharacter();
+			takeAction(character);
 			timeElapsed -= turnTime;
 		}
 	}
+}
 
+function takeAction(character) {
+
+	if (character instanceof Ghost) {
+		takeGhostAction(character);
+	}
+}
+
+function takeGhostAction(character) {
+	const dx = character.x - hunter.x;
+	const dirX = Math.abs(dx);
+	const dy = character.y - hunter.y;
+	const dirY = Math.abs(dy);
+
+	if ((dirY + dirX) <= 1 ) {
+		console.log("attacking hunter");
+	} else if (dirX >= dirY) {
+		followAlongAxis(character, hunter, "x");
+	} else {
+		followAlongAxis(character, hunter, "y");
+	}
+}
+
+function followAlongAxis(actingCharacter, followedCharacter, axisName) {
+	const diff = actingCharacter[axisName] - followedCharacter[axisName];
+	if (diff > 0) {
+		actingCharacter[axisName]--;
+	} else {
+		actingCharacter[axisName]++;
+	}
 }
 
 

@@ -1,4 +1,4 @@
-import {hunter, map, nextCharacter} from "./game.js";
+import {hunter, map, initiatives, nextCharacter} from "./game.js";
 import * as constants from "./constants.js";
 import {keyboard} from "./keyboardControl.js";
 
@@ -27,7 +27,7 @@ function isPassableTile(creature, tile) {
 
 left.press = function () {
 
-	if (hunter.x-1 < 0) {
+	if (hunter.x-1 < 0 || initiatives[0] != hunter) {
 		return;
 	}
 	if (isPassableTile("hunter", map[hunter.x-1][hunter.y])) {
@@ -37,7 +37,7 @@ left.press = function () {
 };
 
 right.press = function () {
-	if (hunter.x+1 >= constants.mapWidth) {
+	if (hunter.x+1 >= constants.mapWidth  || initiatives[0] != hunter) {
 		return;
 	}
 	if (isPassableTile("hunter", map[hunter.x+1][hunter.y])) {
@@ -48,7 +48,7 @@ right.press = function () {
 }
 
 up.press = function () {
-	if (hunter.y-1 < 0){
+	if (hunter.y-1 < 0  || initiatives[0] != hunter){
 		return;
 	}
 	if (isPassableTile("hunter", map[hunter.x][hunter.y-1])) {
@@ -58,7 +58,7 @@ up.press = function () {
 };
 
 down.press = function () {
-	if (hunter.y+1 >= constants.mapHeight){
+	if (hunter.y+1 >= constants.mapHeight  || initiatives[0] != hunter){
 		return;
 	}
 	if (isPassableTile("hunter", map[hunter.x][hunter.y+1])) {
