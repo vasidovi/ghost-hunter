@@ -3,13 +3,19 @@ import * as constants from "./constants.js";
 import { randomInt } from "./utils.js";
 import Hunter from "./classes/Hunter.js";
 import Ghost from "./classes/Ghost.js";
+import GameMetadata from "./classes/GameMetadata.js";
 
-let Sprite = PIXI.Sprite,
-	loader = PIXI.Loader.shared;
+export let Sprite = PIXI.Sprite,
+	loader = PIXI.Loader.shared,
+	Container = PIXI.Container;
+
+
 
 const app = new PIXI.Application();
+
 export const map = [], initiatives = [];
-export let hunter, ghost, state;
+export let hunter, ghost;
+export let gameMetadata = new GameMetadata();
 
 
 function getEntryPoints(typeName) {
@@ -47,8 +53,8 @@ ghost = new Ghost(
 initiatives.push(hunter);
 initiatives.push(ghost);
 
-constants.initializeContstants(initialize);
 
+constants.initializeContstants(initialize);
 
 function initialize() {
 
@@ -76,39 +82,101 @@ function initialize() {
 
 	loader
 		.add("images/ghost-hunter.json")
+		.add("images/replay.png")
 		.load(setup);
 
 }
 
-function setup() {
+let gameScene, gameOverScene, gameOverMessage;
+
+gameScene = new Container();
+gameOverScene = new Container();
+
+function stageGameScene() {
 	let textures = loader.resources["images/ghost-hunter.json"].textures;
-	stageMap(textures);
+
+	stageMap(textures, gameScene);
 
 	hunter.sprite = createCharacterSprite(hunter);
 	ghost.sprite = createCharacterSprite(ghost);
 
+	gameScene.addChild(hunter.sprite);
+	gameScene.addChild(ghost.sprite);
 
-	app.stage.addChild(hunter.sprite);
-	app.stage.addChild(ghost.sprite);
+	app.stage.addChild(gameScene);
+}
 
-	state = play;
+
+function stageGameOverScene() {
+
+	let style = new PIXI.TextStyle({
+		fontFamily: 'Arial',
+		fontSize: 64,
+		fill: 'white'
+	});
+
+	gameOverMessage = new PIXI.Text('Victory', style);
+	gameOverMessage.x = app.renderer.width * (1 / 2);
+	gameOverMessage.y = app.renderer.height * (1 / 2 - 0.1);
+	gameOverMessage.anchor.set(0.5);
+
+	const buttonTexture = loader.resources['images/replay.png'].texture;
+	const button = new Sprite(buttonTexture);
+
+	button.x = gameOverMessage.x;
+	button.y = gameOverMessage.y * 1.5;
+	button.anchor.set(0.5);
+	button.interactive = true;
+	button.buttonMode = true;
+
+	button.on('pointerdown', () => {
+		//handle event
+		gameMetadata.state = play;
+		gameOverScene.visible = false;
+		gameScene.visible = true;
+	});
+
+	app.stage.addChild(gameOverScene);
+	gameOverScene.addChild(button);
+	gameOverScene.addChild(gameOverMessage);
+
+}
+
+function setup() {
+
+	// stageGameOverScene();
+	// gameMetadata.state = end;
+
+	stageGameScene();
+	gameMetadata.state = play;
 
 	app.ticker.add(delta => gameLoop(delta));
+
+}
+
+function gameLoop(delta) {
+	gameMetadata.state(delta);
+
+}
+
+export function end(delta) {
+
+	gameScene.visible = false;
+	stageGameOverScene();
+
+	gameOverScene.visible = true;
+	// console.log("this is the end my friend...");
 }
 
 let timeElapsed = 0;
-function gameLoop(delta) {
-	state(delta);
-
-}
-
 const turnTime = 15;
 
 
 function play(delta) {
+
 	if (initiatives[0] != hunter) {
 		timeElapsed += delta;
-		if (timeElapsed > turnTime) {			
+		if (timeElapsed > turnTime) {
 			const character = nextCharacter();
 			takeAction(character);
 			timeElapsed -= turnTime;
@@ -129,7 +197,7 @@ function takeGhostAction(character) {
 	const dy = character.y - hunter.y;
 	const dirY = Math.abs(dy);
 
-	if ((dirY + dirX) <= 1 ) {
+	if ((dirY + dirX) <= 1) {
 		console.log("attacking hunter");
 	} else if (dirX >= dirY) {
 		followAlongAxis(character, hunter, "x");
@@ -176,7 +244,7 @@ function createCharacterSprite(character) {
 }
 
 
-function stageMap(textures) {
+function stageMap(textures, scene) {
 	for (let row = 0; row < constants.mapWidth; row++) {
 		for (let col = 0; col < constants.mapHeight; col++) {
 
@@ -196,7 +264,7 @@ function stageMap(textures) {
 			tile.y = row * constants.tileSize;
 			tile.x = col * constants.tileSize;
 
-			app.stage.addChild(tile);
+			scene.addChild(tile);
 		}
 	}
 }
