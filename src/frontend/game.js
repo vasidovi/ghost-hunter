@@ -3,20 +3,27 @@ import * as constants from "./constants.js";
 import { randomInt } from "./utils.js";
 import Hunter from "./classes/Hunter.js";
 import Ghost from "./classes/Ghost.js";
-import GameMetadata from "./classes/GameMetadata.js";
+import GameManager from "./classes/GameManager.js";
 
 export let Sprite = PIXI.Sprite,
 	loader = PIXI.Loader.shared,
 	Container = PIXI.Container;
 
-
-
 const app = new PIXI.Application();
 
 export const map = [], initiatives = [];
 export let hunter, ghost;
-export let gameMetadata = new GameMetadata();
+export let gameMetadata = new GameManager();
 
+let gameScene, gameOverScene, gameOverMessage;
+
+gameScene = new Container();
+gameOverScene = new Container();
+
+let timeElapsed = 0;
+const turnTime = 15;
+
+constants.initializeContstants(initialize);
 
 function getEntryPoints(typeName) {
 	const entryPoints = [];
@@ -33,29 +40,6 @@ function getEntryPoints(typeName) {
 	return entryPoints;
 };
 
-
-hunter = new Hunter(
-	1,
-	1,
-	"hunter_idle",
-	constants.tileSize,
-	constants.tileSize
-);
-
-ghost = new Ghost(
-	2,
-	2,
-	"ghost_idle",
-	constants.tileSize,
-	constants.tileSize
-);
-
-initiatives.push(hunter);
-initiatives.push(ghost);
-
-
-constants.initializeContstants(initialize);
-
 function initialize() {
 
 	setApplicationStyle(app);
@@ -67,6 +51,26 @@ function initialize() {
 	generateMap.setExitPoint(map);
 	generateMap.setStartPoint(map);
 	generateMap.setHauntedSpots(map);
+
+
+	hunter = new Hunter(
+		0,
+		0,
+		"hunter_idle",
+		constants.tileSize,
+		constants.tileSize
+	);
+	
+	ghost = new Ghost(
+		0,
+		0,
+		"ghost_idle",
+		constants.tileSize,
+		constants.tileSize
+	);
+	
+	initiatives.push(hunter);
+	initiatives.push(ghost);
 
 	let startPoints = getEntryPoints("start_point");
 
@@ -86,11 +90,6 @@ function initialize() {
 		.load(setup);
 
 }
-
-let gameScene, gameOverScene, gameOverMessage;
-
-gameScene = new Container();
-gameOverScene = new Container();
 
 function stageGameScene() {
 	let textures = loader.resources["images/ghost-hunter.json"].textures;
@@ -134,6 +133,17 @@ function stageGameOverScene() {
 		gameMetadata.state = play;
 		gameOverScene.visible = false;
 		gameScene.visible = true;
+
+		let startPoints = getEntryPoints("start_point");
+
+	hunter.x = startPoints[0].x;
+	hunter.y = startPoints[0].y;
+
+	let hauntedSpots = getEntryPoints("haunted_spot");
+
+	ghost.x = hauntedSpots[0].x;
+	ghost.y = hauntedSpots[0].y;
+		
 	});
 
 	app.stage.addChild(gameOverScene);
@@ -144,14 +154,10 @@ function stageGameOverScene() {
 
 function setup() {
 
-	// stageGameOverScene();
-	// gameMetadata.state = end;
-
 	stageGameScene();
 	gameMetadata.state = play;
 
 	app.ticker.add(delta => gameLoop(delta));
-
 }
 
 function gameLoop(delta) {
@@ -167,10 +173,6 @@ export function end(delta) {
 	gameOverScene.visible = true;
 	// console.log("this is the end my friend...");
 }
-
-let timeElapsed = 0;
-const turnTime = 15;
-
 
 function play(delta) {
 
@@ -214,7 +216,6 @@ function followAlongAxis(actingCharacter, followedCharacter, axisName) {
 		actingCharacter[axisName]++;
 	}
 }
-
 
 function createCharacterSprite(character) {
 

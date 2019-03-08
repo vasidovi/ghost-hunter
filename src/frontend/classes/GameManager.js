@@ -1,4 +1,4 @@
-export default class GameMetadata{
+export default class GameManager{
 	constructor(){
 		this._state = null; 
 	}
@@ -8,6 +8,11 @@ export default class GameMetadata{
 
     set state(value) {
       this._state = value;
+    }
+
+    newGame(){
+    
+
     }
 
 }
