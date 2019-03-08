@@ -4,12 +4,11 @@ import { redrawHearts } from "../game.js";
 export default class Hunter extends Character {
 
  get health(){
-	 return this._health;
+	 return super.health;
  }
 
 	set health(value){
-		console.log(value);
-		this._health = value;
+		super.health = value;
 		redrawHearts(value);
 	}
 }

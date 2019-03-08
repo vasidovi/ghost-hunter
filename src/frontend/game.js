@@ -64,7 +64,7 @@ function initialize() {
 	hunter = new Hunter(
 		0,
 		0,
-		"hunter_idle",
+		"hunter",
 		constants.tileSize,
 		constants.tileSize
 	);
@@ -72,7 +72,7 @@ function initialize() {
 	ghost = new Ghost(
 		0,
 		0,
-		"ghost_idle",
+		"ghost",
 		constants.tileSize,
 		constants.tileSize
 	);
@@ -97,14 +97,14 @@ function stageGameScene() {
 
 	stageMap(textures, gameScene);
 
-	hunter.sprite = createCharacterSprite(hunter);
-	ghost.sprite = createCharacterSprite(ghost);
+	hunter.spriteContainer.addChild(createCharacterSprite(hunter));
+	ghost.spriteContainer.addChild(createCharacterSprite(ghost));
 
 	redrawHearts(hunter.health);
 
 	gameScene.addChild(heartContainer);
-	gameScene.addChild(hunter.sprite);
-	gameScene.addChild(ghost.sprite);
+	gameScene.addChild(hunter.spriteContainer);
+	gameScene.addChild(ghost.spriteContainer);
 
 	app.stage.addChild(gameScene);
 }
@@ -261,10 +261,10 @@ function followAlongAxis(actingCharacter, followedCharacter, axisName) {
 	}
 }
 
-function createCharacterSprite(character) {
+export function createCharacterSprite(character) {
 
-	const characterState = character.state;
-	const names = constants.textureNames.characters[characterState];
+	const texturesKey = character.name + "_" + character.state;
+	const names = constants.textureNames.characters[texturesKey];
 
 	let textureArray = [];
 
@@ -273,10 +273,10 @@ function createCharacterSprite(character) {
 		textureArray.push(texture);
 	};
 
+	// createCharacterSpriteContainer()
+
 	let animatedSprite = new PIXI.AnimatedSprite(textureArray);
 
-	animatedSprite.x = character.x * constants.tileSize;
-	animatedSprite.y = character.y * constants.tileSize;
 	animatedSprite.width = character.width;
 	animatedSprite.height = character.height;
 	animatedSprite.animationSpeed = 0.15;
