@@ -9,10 +9,19 @@ export default class Character {
 		this.width = width;
 		this.height = height;
 		this.sprite = null;
-		this._x = x;  // "private" field
-		this._y = y;  // "private" field
+		// this._x = x;  // "private" field
+		// this._y = y;  // "private" field
+		this.health = 3;
 	}
 
+  get health(){
+		return this._health;
+	}
+
+	set health(value){
+		this._health = value;
+	}
+	
 	get x() {
 		return this._x;
 	}
@@ -30,6 +39,14 @@ export default class Character {
 		this._y = value;
 		if (this.sprite) {
 			this.sprite.y = value * constants.tileSize;
+		}
+	}
+
+	attack(target){
+		if (target.health > 0){
+			target.health--;
+		}else{
+			console.log("I am dead");
 		}
 	}
 }

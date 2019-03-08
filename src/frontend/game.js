@@ -19,6 +19,7 @@ let gameScene, gameOverScene, gameOverMessage;
 
 gameScene = new Container();
 gameOverScene = new Container();
+const heartContainer = new Container();
 
 let timeElapsed = 0;
 const turnTime = 15;
@@ -52,6 +53,13 @@ function initialize() {
 	generateMap.setStartPoint(map);
 	generateMap.setHauntedSpots(map);
 
+	
+	loader
+		.add("images/ghost-hunter.json")
+		.add("images/replay.png")
+		.add("images/heart.png")
+		.load(setup);
+
 
 	hunter = new Hunter(
 		0,
@@ -60,7 +68,7 @@ function initialize() {
 		constants.tileSize,
 		constants.tileSize
 	);
-	
+
 	ghost = new Ghost(
 		0,
 		0,
@@ -68,7 +76,7 @@ function initialize() {
 		constants.tileSize,
 		constants.tileSize
 	);
-	
+
 	initiatives.push(hunter);
 	initiatives.push(ghost);
 
@@ -82,13 +90,6 @@ function initialize() {
 	ghost.x = hauntedSpots[0].x;
 	ghost.y = hauntedSpots[0].y;
 
-
-
-	loader
-		.add("images/ghost-hunter.json")
-		.add("images/replay.png")
-		.load(setup);
-
 }
 
 function stageGameScene() {
@@ -99,14 +100,35 @@ function stageGameScene() {
 	hunter.sprite = createCharacterSprite(hunter);
 	ghost.sprite = createCharacterSprite(ghost);
 
+	redrawHearts(hunter.health);
+
+	gameScene.addChild(heartContainer);
 	gameScene.addChild(hunter.sprite);
 	gameScene.addChild(ghost.sprite);
 
 	app.stage.addChild(gameScene);
 }
 
+export function redrawHearts(count) {
+	heartContainer.removeChildren();
+	const texture = loader.resources['images/heart.png'].texture;
+	console.log(texture);
+	for (let i = 0; i < count; i++) {
+		const heart = new Sprite(texture);
+		const scale = 0.75;
+		const heartSize = constants.tileSize * scale;
 
-function stageGameOverScene() {
+		heart.x = constants.tileSize / 2 + heartSize * i;
+		heart.y = constants.tileSize / 2;
+		heart.anchor.set(0.5);
+		heart.width = heartSize;
+		heart.height = heartSize;
+		heartContainer.addChild(heart)
+	}
+}
+
+
+function stageGameOverScene(message) {
 
 	let style = new PIXI.TextStyle({
 		fontFamily: 'Arial',
@@ -114,7 +136,7 @@ function stageGameOverScene() {
 		fill: 'white'
 	});
 
-	gameOverMessage = new PIXI.Text('Victory', style);
+	gameOverMessage = new PIXI.Text(message, style);
 	gameOverMessage.x = app.renderer.width * (1 / 2);
 	gameOverMessage.y = app.renderer.height * (1 / 2 - 0.1);
 	gameOverMessage.anchor.set(0.5);
@@ -136,14 +158,20 @@ function stageGameOverScene() {
 
 		let startPoints = getEntryPoints("start_point");
 
-	hunter.x = startPoints[0].x;
-	hunter.y = startPoints[0].y;
+		hunter.x = startPoints[0].x;
+		hunter.y = startPoints[0].y;
+		hunter.health = 3;
+		// redrawHearts(hunter.health);
 
-	let hauntedSpots = getEntryPoints("haunted_spot");
+		let hauntedSpots = getEntryPoints("haunted_spot");
 
-	ghost.x = hauntedSpots[0].x;
-	ghost.y = hauntedSpots[0].y;
-		
+		ghost.x = hauntedSpots[0].x;
+		ghost.y = hauntedSpots[0].y;
+
+		initiatives.length = 0;
+		initiatives.push(hunter);
+		initiatives.push(ghost);
+
 	});
 
 	app.stage.addChild(gameOverScene);
@@ -168,7 +196,11 @@ function gameLoop(delta) {
 export function end(delta) {
 
 	gameScene.visible = false;
-	stageGameOverScene();
+	if (hunter.health > 0){
+	stageGameOverScene("Victory");
+	} else {
+	stageGameOverScene("Defeat");
+	}
 
 	gameOverScene.visible = true;
 	// console.log("this is the end my friend...");
@@ -200,7 +232,13 @@ function takeGhostAction(character) {
 	const dirY = Math.abs(dy);
 
 	if ((dirY + dirX) <= 1) {
-		console.log("attacking hunter");
+		character.attack(hunter);
+		if ( hunter.health > 0) {
+		// redrawHearts(hunter.health);
+		} else { 
+			gameMetadata.state = end;
+		}
+
 	} else if (dirX >= dirY) {
 		followAlongAxis(character, hunter, "x");
 	} else {
