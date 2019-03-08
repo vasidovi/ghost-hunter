@@ -53,7 +53,7 @@ function initialize() {
 	generateMap.setStartPoint(map);
 	generateMap.setHauntedSpots(map);
 
-	
+
 	loader
 		.add("images/ghost-hunter.json")
 		.add("images/replay.png")
@@ -130,6 +130,9 @@ export function redrawHearts(count) {
 
 function stageGameOverScene(message) {
 
+	gameOverScene.destroy();
+	gameOverScene = new Container();
+
 	let style = new PIXI.TextStyle({
 		fontFamily: 'Arial',
 		fontSize: 64,
@@ -174,6 +177,7 @@ function stageGameOverScene(message) {
 
 	});
 
+
 	app.stage.addChild(gameOverScene);
 	gameOverScene.addChild(button);
 	gameOverScene.addChild(gameOverMessage);
@@ -195,11 +199,13 @@ function gameLoop(delta) {
 
 export function end(delta) {
 
-	gameScene.visible = false;
-	if (hunter.health > 0){
-	stageGameOverScene("Victory");
-	} else {
-	stageGameOverScene("Defeat");
+	if (gameScene.visible) {
+		gameScene.visible = false;
+		if (hunter.health > 0) {
+			stageGameOverScene("Victory");
+		} else {
+			stageGameOverScene("Defeat");
+		}
 	}
 
 	gameOverScene.visible = true;
@@ -233,9 +239,9 @@ function takeGhostAction(character) {
 
 	if ((dirY + dirX) <= 1) {
 		character.attack(hunter);
-		if ( hunter.health > 0) {
-		// redrawHearts(hunter.health);
-		} else { 
+		if (hunter.health > 0) {
+			// redrawHearts(hunter.health);
+		} else {
 			gameMetadata.state = end;
 		}
 
