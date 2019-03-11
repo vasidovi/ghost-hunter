@@ -3,6 +3,8 @@ import * as constants from "./constants.js";
 import { randomInt } from "./utils.js";
 import Hunter from "./classes/Hunter.js";
 import Ghost from "./classes/Ghost.js";
+import Object from "./classes/Object.js";
+import Weapon from "./classes/Weapon.js";
 import GameManager from "./classes/GameManager.js";
 
 export let Sprite = PIXI.Sprite,
@@ -72,6 +74,15 @@ function initialize() {
 		constants.tileSize
 	);
 
+	const pickaxe = new Weapon("pickaxe", 1);
+	const salt = new Object("salt", 5);
+
+	hunter.gear.push(pickaxe);
+	hunter.gear.push(salt);
+
+	// hunter.gear = [{"name" : "pickaxe", "count" : 1}, {"name" : "salt", "count" : 5}];
+
+
 	ghost = new Ghost(
 		0,
 		0,
@@ -108,36 +119,55 @@ function stageGameScene() {
 	gameScene.addChild(heartContainer);
 	gameScene.addChild(hunter.spriteContainer);
 	gameScene.addChild(ghost.spriteContainer);
-	const toolContainer = createToolContainer();
-	gameScene.addChild(fillContainerSlots(toolContainer));
-	console.log(toolContainer);
-
+	let toolContainer = createToolContainer();
+	
+   fillContainerSlots(gameScene, toolContainer, hunter.gear);
 
 	gameScene.addChild(toolContainer);
 	app.stage.addChild(gameScene);
 }
 
-function fillContainerSlots(container) {
+function fillContainerSlots(scene, container, items) {
 
 	// we recieve as 2nd input field hunter.gear == [{"name" : pickaxe", "count" : 1}, {..}];
-	const elementContainer = new PIXI.Container();
 	// need maping mechanism for hunter.gear[0].name to get texture path
-	const texture = loader.resources['images/pickaxe.png'].texture;
+
+	for (let i = 0; i < items.length; i++){
+
+	// temporary need to decide how to store objects and map their names with image paths	
+	const imagePath = 'images/' + items[i].name + '.png';
+
+	const texture = loader.resources[imagePath].texture;  
+	const elementContainer = new Container();
+
 	const element = new Sprite(texture);
-	const slot = container.children[2];
+
+	const slot = container.children[i];
 	const scale = 0.8;
+
 	element.anchor.set(0.5);
 	element.height = slot.height * scale;
 	element.width = slot.width * scale;
-	slot.addChild(element);
 	element.x = (slot.parent.x + slot.x);
 	element.y = slot.parent.y + slot.y;
 
-	console.log(element.x);
+  let style = new PIXI.TextStyle({
+		fontFamily: 'Arial',
+		fontSize: 15,
+		fill: 'brown'
+	});
 
-	return element;
+	const count =  new PIXI.Text(items[i].count, style);
+	count.x = element.x;
+	count.y = element.y;
 
+	elementContainer.addChild(element);
+	elementContainer.addChild(count);
 
+	slot.addChild(elementContainer);
+
+	scene.addChild(elementContainer);
+	}
 }
 
 export function redrawHearts(count) {
@@ -305,8 +335,6 @@ export function createCharacterSprite(character) {
 		textureArray.push(texture);
 	};
 
-	// createCharacterSpriteContainer()
-
 	let animatedSprite = new PIXI.AnimatedSprite(textureArray);
 
 	animatedSprite.width = character.width;
@@ -324,58 +352,32 @@ function createToolContainer() {
 
 	const slots = 7;
 	const scale = 0.75;
-	// const borderColor = 0xD3D3D3;
-	// const fillColor = borderColor;
-	// const borderWidth = 2;
-	// const borderRadius = 5;
-	// const opacity = 0.15;
 	const outerW = constants.tileSize * scale * slots;
 	const outerH = constants.tileSize * scale;
 	let innerW = outerW / slots;
 	let innerH = outerH;
-	const x = constants.tileSize * constants.mapWidth / 2 - outerW / 2 + innerW / 2;
-//	const x = constants.tileSize * constants.mapWidth / 2;
-//	const y = constants.tileSize * (constants.mapHeight - 1) + constants.tileSize * (1 - scale) / 2;
-	const y = constants.tileSize * (constants.mapHeight - 0.5) ;
+	const x = constants.tileSize * constants.mapWidth / 2 - outerW / 2;
+	const y = constants.tileSize * (constants.mapHeight - 0.5);
 
 	let texture = loader.resources['images/slot.png'].texture;
 
-	// let outerGraphics = new PIXI.Graphics();
-
-	// outerGraphics.lineStyle(borderWidth, borderColor, 1);
-	// outerGraphics.beginFill(fillColor, opacity);
-	// outerGraphics.drawRoundedRect(x, y, outerW, outerH, borderRadius);
-	// outerGraphics.endFill();
-
-	// let texture = PIXI.RenderTexture.create(outerW, outerH);
-	// app.renderer.render(outerGraphics, texture)
 	let outerContainer = new PIXI.Container();
-	//let outerContainer = new Sprite(app.renderer.generateTexture(outerGraphics));
 
 	outerContainer.x = x;
 	outerContainer.y = y;
-	// outerContainer.width = outerW;
-	// outerContainer.height = outerH;
 
 	for (let i = 0; i < slots; i++) {
 
-		// let innerGraphics = new PIXI.Graphics();
-		// innerGraphics.lineStyle(borderWidth, borderColor, 1);
-		// innerGraphics.drawRoundedRect(x + outerW / slots * i, y, innerW, innerH, borderRadius);
-
-		// let innerContainer = new Sprite(app.renderer.generateTexture(innerGraphics));
 		let innerContainer = new Sprite(texture);
-		
+
 		innerContainer.anchor.set(0.5);
-		innerContainer.x = outerW / slots * i;
+		innerContainer.x = outerW / slots * i + innerW / 2;
 		innerContainer.width = innerW;
 		innerContainer.height = innerH;
 
-		//	outerGraphics.addChild(innerGraphics);
 		outerContainer.addChild(innerContainer);
 	}
 
-	// return outerGraphics;
 	return outerContainer;
 }
 
