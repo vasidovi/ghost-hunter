@@ -12,6 +12,7 @@ export default class Character {
 		this.spriteContainer = new PIXI.Container();
 		this.state = "idle";
 		this.sprite = null;
+		// this.gear = { "weapon : "}
 		// this._x = x;  // "private" field
 		// this._y = y;  // "private" field
 		this.health = 3;

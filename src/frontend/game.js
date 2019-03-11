@@ -58,6 +58,9 @@ function initialize() {
 		.add("images/ghost-hunter.json")
 		.add("images/replay.png")
 		.add("images/heart.png")
+		.add("images/pickaxe.png")
+		.add("images/salt.png")
+		.add("images/slot.png")
 		.load(setup);
 
 
@@ -105,14 +108,41 @@ function stageGameScene() {
 	gameScene.addChild(heartContainer);
 	gameScene.addChild(hunter.spriteContainer);
 	gameScene.addChild(ghost.spriteContainer);
+	const toolContainer = createToolContainer();
+	gameScene.addChild(fillContainerSlots(toolContainer));
+	console.log(toolContainer);
 
+
+	gameScene.addChild(toolContainer);
 	app.stage.addChild(gameScene);
+}
+
+function fillContainerSlots(container) {
+
+	// we recieve as 2nd input field hunter.gear == [{"name" : pickaxe", "count" : 1}, {..}];
+	const elementContainer = new PIXI.Container();
+	// need maping mechanism for hunter.gear[0].name to get texture path
+	const texture = loader.resources['images/pickaxe.png'].texture;
+	const element = new Sprite(texture);
+	const slot = container.children[2];
+	const scale = 0.8;
+	element.anchor.set(0.5);
+	element.height = slot.height * scale;
+	element.width = slot.width * scale;
+	slot.addChild(element);
+	element.x = (slot.parent.x + slot.x);
+	element.y = slot.parent.y + slot.y;
+
+	console.log(element.x);
+
+	return element;
+
+
 }
 
 export function redrawHearts(count) {
 	heartContainer.removeChildren();
 	const texture = loader.resources['images/heart.png'].texture;
-	console.log(texture);
 	for (let i = 0; i < count; i++) {
 		const heart = new Sprite(texture);
 		const scale = 0.75;
@@ -147,6 +177,8 @@ function stageGameOverScene(message) {
 	const buttonTexture = loader.resources['images/replay.png'].texture;
 	const button = new Sprite(buttonTexture);
 
+	button.width = constants.tileSize;
+	button.height = constants.tileSize;
 	button.x = gameOverMessage.x;
 	button.y = gameOverMessage.y * 1.5;
 	button.anchor.set(0.5);
@@ -286,6 +318,65 @@ export function createCharacterSprite(character) {
 	animatedSprite.play();
 
 	return animatedSprite;
+}
+
+function createToolContainer() {
+
+	const slots = 7;
+	const scale = 0.75;
+	// const borderColor = 0xD3D3D3;
+	// const fillColor = borderColor;
+	// const borderWidth = 2;
+	// const borderRadius = 5;
+	// const opacity = 0.15;
+	const outerW = constants.tileSize * scale * slots;
+	const outerH = constants.tileSize * scale;
+	let innerW = outerW / slots;
+	let innerH = outerH;
+	const x = constants.tileSize * constants.mapWidth / 2 - outerW / 2 + innerW / 2;
+//	const x = constants.tileSize * constants.mapWidth / 2;
+//	const y = constants.tileSize * (constants.mapHeight - 1) + constants.tileSize * (1 - scale) / 2;
+	const y = constants.tileSize * (constants.mapHeight - 0.5) ;
+
+	let texture = loader.resources['images/slot.png'].texture;
+
+	// let outerGraphics = new PIXI.Graphics();
+
+	// outerGraphics.lineStyle(borderWidth, borderColor, 1);
+	// outerGraphics.beginFill(fillColor, opacity);
+	// outerGraphics.drawRoundedRect(x, y, outerW, outerH, borderRadius);
+	// outerGraphics.endFill();
+
+	// let texture = PIXI.RenderTexture.create(outerW, outerH);
+	// app.renderer.render(outerGraphics, texture)
+	let outerContainer = new PIXI.Container();
+	//let outerContainer = new Sprite(app.renderer.generateTexture(outerGraphics));
+
+	outerContainer.x = x;
+	outerContainer.y = y;
+	// outerContainer.width = outerW;
+	// outerContainer.height = outerH;
+
+	for (let i = 0; i < slots; i++) {
+
+		// let innerGraphics = new PIXI.Graphics();
+		// innerGraphics.lineStyle(borderWidth, borderColor, 1);
+		// innerGraphics.drawRoundedRect(x + outerW / slots * i, y, innerW, innerH, borderRadius);
+
+		// let innerContainer = new Sprite(app.renderer.generateTexture(innerGraphics));
+		let innerContainer = new Sprite(texture);
+		
+		innerContainer.anchor.set(0.5);
+		innerContainer.x = outerW / slots * i;
+		innerContainer.width = innerW;
+		innerContainer.height = innerH;
+
+		//	outerGraphics.addChild(innerGraphics);
+		outerContainer.addChild(innerContainer);
+	}
+
+	// return outerGraphics;
+	return outerContainer;
 }
 
 
