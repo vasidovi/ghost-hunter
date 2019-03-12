@@ -5,7 +5,10 @@ import { keyboard } from "./keyboardControl.js";
 let left = keyboard(37),
 	up = keyboard(38),
 	right = keyboard(39),
-	down = keyboard(40);
+	down = keyboard(40),
+	space = keyboard(32); // picking up stuff 
+
+
 
 function isExitTile(tile) {
 	let isExit = false;
@@ -37,6 +40,13 @@ function isPassableTile(creature, tile) {
 		}
 	}
 	return true;
+}
+
+space.press = function () {
+	if (map[hunter.y][hunter.x].objects){
+		console.log("picking up stuff");
+		nextCharacter();
+	}
 }
 
 left.press = function () {

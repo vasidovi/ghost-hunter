@@ -54,6 +54,7 @@ function initialize() {
 	generateMap.setExitPoint(map);
 	generateMap.setStartPoint(map);
 	generateMap.setHauntedSpots(map);
+	generateMap.scatterObjects(map);
 
 
 	loader
@@ -120,8 +121,8 @@ function stageGameScene() {
 	gameScene.addChild(hunter.spriteContainer);
 	gameScene.addChild(ghost.spriteContainer);
 	let toolContainer = createToolContainer();
-	
-   fillContainerSlots(gameScene, toolContainer, hunter.gear);
+
+	fillContainerSlots(gameScene, toolContainer, hunter.gear);
 
 	gameScene.addChild(toolContainer);
 	app.stage.addChild(gameScene);
@@ -132,41 +133,41 @@ function fillContainerSlots(scene, container, items) {
 	// we recieve as 2nd input field hunter.gear == [{"name" : pickaxe", "count" : 1}, {..}];
 	// need maping mechanism for hunter.gear[0].name to get texture path
 
-	for (let i = 0; i < items.length; i++){
+	for (let i = 0; i < items.length; i++) {
 
-	// temporary need to decide how to store objects and map their names with image paths	
-	const imagePath = 'images/' + items[i].name + '.png';
+		// temporary need to decide how to store objects and map their names with image paths	
+		const imagePath = 'images/' + items[i].name + '.png';
 
-	const texture = loader.resources[imagePath].texture;  
-	const elementContainer = new Container();
+		const texture = loader.resources[imagePath].texture;
+		const elementContainer = new Container();
 
-	const element = new Sprite(texture);
+		const element = new Sprite(texture);
 
-	const slot = container.children[i];
-	const scale = 0.8;
+		const slot = container.children[i];
+		const scale = 0.8;
 
-	element.anchor.set(0.5);
-	element.height = slot.height * scale;
-	element.width = slot.width * scale;
-	element.x = (slot.parent.x + slot.x);
-	element.y = slot.parent.y + slot.y;
+		element.anchor.set(0.5);
+		element.height = slot.height * scale;
+		element.width = slot.width * scale;
+		element.x = (slot.parent.x + slot.x);
+		element.y = slot.parent.y + slot.y;
 
-  let style = new PIXI.TextStyle({
-		fontFamily: 'Arial',
-		fontSize: 15,
-		fill: 'brown'
-	});
+		let style = new PIXI.TextStyle({
+			fontFamily: 'Arial',
+			fontSize: 15,
+			fill: 'brown'
+		});
 
-	const count =  new PIXI.Text(items[i].count, style);
-	count.x = element.x;
-	count.y = element.y;
+		const count = new PIXI.Text(items[i].count, style);
+		count.x = element.x;
+		count.y = element.y;
 
-	elementContainer.addChild(element);
-	elementContainer.addChild(count);
+		elementContainer.addChild(element);
+		elementContainer.addChild(count);
 
-	slot.addChild(elementContainer);
+		slot.addChild(elementContainer);
 
-	scene.addChild(elementContainer);
+		scene.addChild(elementContainer);
 	}
 }
 
@@ -396,13 +397,41 @@ function stageMap(textures, scene) {
 
 			let tile = new Sprite(texture);
 			tile.width = constants.tileSize;
-
 			tile.height = constants.tileSize;
+			tile.zIndex = 1;
+			const container = new Container();
+			container.y = row * constants.tileSize;
+			container.x = col * constants.tileSize;
+			container.addChild(tile);
 
-			tile.y = row * constants.tileSize;
-			tile.x = col * constants.tileSize;
+			if (map[row][col].objects) {
+				console.log("staging objects at " + row + " " + col);
 
-			scene.addChild(tile);
+				const items = map[row][col].objects;
+
+				for (let i = 0; i < items.length; i++) {
+
+					// temporary need to decide how to store objects and map their names with image paths	
+					const imagePath = 'images/' + items[i].name + '.png';
+
+					const texture = loader.resources[imagePath].texture;
+
+					const element = new Sprite(texture);
+
+					const scale = 0.5;
+
+					element.anchor.set(0.5);
+
+					element.height = constants.tileSize * scale;
+					element.width = constants.tileSize * scale;
+					element.x = constants.tileSize / 2;
+					element.y = constants.tileSize / 2;
+					element.zIndex = 2+i;
+					container.addChild(element);
+
+				}
+			} 
+			scene.addChild(container);
 		}
 	}
 }

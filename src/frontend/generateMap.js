@@ -1,4 +1,6 @@
 import * as constants from "./constants.js";
+import Object from "./classes/Object.js";
+import Weapon from "./classes/Weapon.js";
 
 
 export function setGround(map) {
@@ -42,4 +44,10 @@ export function setStartPoint(map) {
 export function setHauntedSpots(map){
 	map[4][4].tile = constants.TILES.haunted_spot;
   map[4][4].types = ["haunted_spot"];	
-} 
+}
+
+export function scatterObjects(map){
+	const salt = new Object("salt", 2);
+	const pickaxe = new Weapon("pickaxe", 1); 
+	map[1][1].objects = [salt, pickaxe];
+}
