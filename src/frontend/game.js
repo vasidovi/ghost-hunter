@@ -25,6 +25,8 @@ const heartContainer = new Container();
 
 let timeElapsed = 0;
 const turnTime = 15;
+let slots = 7;
+let toolContainer = new Container();
 
 constants.initializeContstants(initialize);
 
@@ -77,12 +79,10 @@ function initialize() {
 
 	const pickaxe = new Weapon("pickaxe", 1);
 	const salt = new Object("salt", 5);
-
-	hunter.gear.push(pickaxe);
-	hunter.gear.push(salt);
-
-	// hunter.gear = [{"name" : "pickaxe", "count" : 1}, {"name" : "salt", "count" : 5}];
-
+	const gear = [];
+   gear.push(pickaxe);
+	 gear.push(salt);
+	 hunter.gear = gear;
 
 	ghost = new Ghost(
 		0,
@@ -120,55 +120,11 @@ function stageGameScene() {
 	gameScene.addChild(heartContainer);
 	gameScene.addChild(hunter.spriteContainer);
 	gameScene.addChild(ghost.spriteContainer);
-	let toolContainer = createToolContainer();
-
-	fillContainerSlots(gameScene, toolContainer, hunter.gear);
+	
+  redrawToolContainer(hunter.gear);
 
 	gameScene.addChild(toolContainer);
 	app.stage.addChild(gameScene);
-}
-
-function fillContainerSlots(scene, container, items) {
-
-	// we recieve as 2nd input field hunter.gear == [{"name" : pickaxe", "count" : 1}, {..}];
-	// need maping mechanism for hunter.gear[0].name to get texture path
-
-	for (let i = 0; i < items.length; i++) {
-
-		// temporary need to decide how to store objects and map their names with image paths	
-		const imagePath = 'images/' + items[i].name + '.png';
-
-		const texture = loader.resources[imagePath].texture;
-		const elementContainer = new Container();
-
-		const element = new Sprite(texture);
-
-		const slot = container.children[i];
-		const scale = 0.8;
-
-		element.anchor.set(0.5);
-		element.height = slot.height * scale;
-		element.width = slot.width * scale;
-		element.x = (slot.parent.x + slot.x);
-		element.y = slot.parent.y + slot.y;
-
-		let style = new PIXI.TextStyle({
-			fontFamily: 'Arial',
-			fontSize: 15,
-			fill: 'brown'
-		});
-
-		const count = new PIXI.Text(items[i].count, style);
-		count.x = element.x;
-		count.y = element.y;
-
-		elementContainer.addChild(element);
-		elementContainer.addChild(count);
-
-		slot.addChild(elementContainer);
-
-		scene.addChild(elementContainer);
-	}
 }
 
 export function redrawHearts(count) {
@@ -227,7 +183,6 @@ function stageGameOverScene(message) {
 		hunter.x = startPoints[0].x;
 		hunter.y = startPoints[0].y;
 		hunter.health = 3;
-		// redrawHearts(hunter.health);
 
 		let hauntedSpots = getEntryPoints("haunted_spot");
 
@@ -303,7 +258,6 @@ function takeGhostAction(character) {
 	if ((dirY + dirX) <= 1) {
 		character.attack(hunter);
 		if (hunter.health > 0) {
-			// redrawHearts(hunter.health);
 		} else {
 			gameMetadata.state = end;
 		}
@@ -349,9 +303,19 @@ export function createCharacterSprite(character) {
 	return animatedSprite;
 }
 
-function createToolContainer() {
+function createToolContainer(slots){
+	for (let i = 0; i < slots; i++) {
+		let innerContainer = new Container();
+		toolContainer.addChild(innerContainer);
+	}
+	//return outerContainer;
+}
 
-	const slots = 7;
+export function redrawToolContainer(items) {
+	
+	toolContainer.removeChildren();
+	createToolContainer(slots);
+	
 	const scale = 0.75;
 	const outerW = constants.tileSize * scale * slots;
 	const outerH = constants.tileSize * scale;
@@ -362,24 +326,59 @@ function createToolContainer() {
 
 	let texture = loader.resources['images/slot.png'].texture;
 
-	let outerContainer = new PIXI.Container();
+//	let outerContainer = new PIXI.Container();
 
-	outerContainer.x = x;
-	outerContainer.y = y;
+//	outerContainer.x = x;
+//	outerContainer.y = y;
+		toolContainer.x = x;
+		toolContainer.y = y;
 
 	for (let i = 0; i < slots; i++) {
+     
+		 let innerContainer = toolContainer.getChildAt(i);
+		 		 
+		let innerContainerImage = new Sprite(texture);
 
-		let innerContainer = new Sprite(texture);
+		innerContainerImage.anchor.set(0.5);
+		innerContainerImage.x = outerW / slots * i + innerW / 2;
+		innerContainerImage.width = innerW;
+		innerContainerImage.height = innerH;
 
-		innerContainer.anchor.set(0.5);
-		innerContainer.x = outerW / slots * i + innerW / 2;
-		innerContainer.width = innerW;
-		innerContainer.height = innerH;
+		innerContainer.addChild(innerContainerImage);
 
-		outerContainer.addChild(innerContainer);
+		if (i < items.length){
+
+			const imagePath = 'images/' + items[i].name + '.png';
+
+			const texture = loader.resources[imagePath].texture;
+	
+			const element = new Sprite(texture);
+			const imageScale = 0.8;
+
+			element.anchor.set(0.5);
+			element.height = innerH * imageScale;
+			element.width = innerW * imageScale;
+			element.x = innerContainerImage.x;
+			element.y = innerContainerImage.y;
+	
+			let style = new PIXI.TextStyle({
+				fontFamily: 'Arial',
+				fontSize: 15,
+				fill: 'brown'
+			});
+	
+			const count = new PIXI.Text(items[i].count, style);
+			count.x = element.x;
+			count.y = element.y;
+
+			innerContainer.addChild(element);
+			innerContainer.addChild(count);
+
+		}
+		//outerContainer.addChild(innerContainer);
 	}
-
-	return outerContainer;
+  //return toolContainer;
+//	return outerContainer;
 }
 
 
@@ -405,7 +404,6 @@ function stageMap(textures, scene) {
 			container.addChild(tile);
 
 			if (map[row][col].objects) {
-				console.log("staging objects at " + row + " " + col);
 
 				const items = map[row][col].objects;
 

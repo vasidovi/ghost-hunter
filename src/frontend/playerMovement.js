@@ -15,8 +15,8 @@ function isExitTile(tile) {
 	if ('types' in tile) {
 		const types = tile.types;
 		return types.find(function (element) {
-			if ( element == "exit"){
-			return isExit = true;
+			if (element == "exit") {
+				return isExit = true;
 			}
 		});
 	}
@@ -43,8 +43,26 @@ function isPassableTile(creature, tile) {
 }
 
 space.press = function () {
-	if (map[hunter.y][hunter.x].objects){
-		console.log("picking up stuff");
+	if (map[hunter.y][hunter.x].objects) {
+		let objects = map[hunter.y][hunter.x].objects;
+		const gear = hunter.gear;
+	
+		for (let object of objects) {
+
+			let existingObject = hunter.gear.find(function (element) {
+				return element.name == object.name;
+			});
+
+			if (existingObject) {
+				existingObject.count += object.count;
+			} else {
+				gear.push(object);
+			}
+			hunter.gear = gear;
+			// remove sprite from container // to DO
+			// updateCount in toolsContainer (in Hunter class done);
+		}
+		objects = [];
 		nextCharacter();
 	}
 }
@@ -54,11 +72,11 @@ left.press = function () {
 	if (hunter.x - 1 < 0 || initiatives[0] != hunter) {
 		return;
 	}
-	if (isExitTile(map[hunter.y][hunter.x-1])) {
+	if (isExitTile(map[hunter.y][hunter.x - 1])) {
 		hunter.x -= 1;
 		gameMetadata.state = end;
 	}
-	if (isPassableTile("hunter", map[hunter.y][hunter.x-1])) {
+	if (isPassableTile("hunter", map[hunter.y][hunter.x - 1])) {
 		hunter.x -= 1;
 		nextCharacter();
 	}
@@ -68,11 +86,11 @@ right.press = function () {
 	if (hunter.x + 1 >= constants.mapWidth || initiatives[0] != hunter) {
 		return;
 	}
-	if (isExitTile(map[hunter.y][hunter.x+1])) {
+	if (isExitTile(map[hunter.y][hunter.x + 1])) {
 		hunter.x += 1;
 		gameMetadata.state = end;
 	}
-	if (isPassableTile("hunter", map[hunter.y][hunter.x+1])) {
+	if (isPassableTile("hunter", map[hunter.y][hunter.x + 1])) {
 		hunter.x += 1;
 		nextCharacter();
 	}
@@ -83,11 +101,11 @@ up.press = function () {
 	if (hunter.y - 1 < 0 || initiatives[0] != hunter) {
 		return;
 	}
-	if (isExitTile(map[hunter.y-1][hunter.x])) {
+	if (isExitTile(map[hunter.y - 1][hunter.x])) {
 		hunter.y -= 1;
 		gameMetadata.state = end;
 	}
-	if (isPassableTile("hunter", map[hunter.y-1][hunter.x])) {
+	if (isPassableTile("hunter", map[hunter.y - 1][hunter.x])) {
 		hunter.y -= 1;
 		nextCharacter();
 	}
@@ -97,11 +115,11 @@ down.press = function () {
 	if (hunter.y + 1 >= constants.mapHeight || initiatives[0] != hunter) {
 		return;
 	}
-	if (isExitTile(map[hunter.y+1][hunter.x])) {
+	if (isExitTile(map[hunter.y + 1][hunter.x])) {
 		hunter.y += 1;
 		gameMetadata.state = end;
 	}
-	if (isPassableTile("hunter", map[hunter.y+1][hunter.x])) {
+	if (isPassableTile("hunter", map[hunter.y + 1][hunter.x])) {
 		hunter.y += 1;
 		nextCharacter();
 	}

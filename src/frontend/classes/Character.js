@@ -34,6 +34,14 @@ export default class Character {
 		this._health = value;
 	}
 
+	get gear() {
+		return this._gear;
+	}
+
+	set gear(value) {
+		this._gear = value;		
+}
+
 	get x() {
 		return this._x;
 	}
