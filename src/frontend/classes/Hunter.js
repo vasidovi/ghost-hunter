@@ -18,7 +18,6 @@ export default class Hunter extends Character {
 
 	set gear(value) {
 		super.gear = value;
-		console.log(super.gear);
 		redrawToolContainer(value);
 	}
 

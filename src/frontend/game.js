@@ -25,7 +25,7 @@ const heartContainer = new Container();
 
 let timeElapsed = 0;
 const turnTime = 15;
-let slots = 7;
+const toolSlots = 7;
 let toolContainer = new Container();
 
 constants.initializeContstants(initialize);
@@ -80,9 +80,9 @@ function initialize() {
 	const pickaxe = new Weapon("pickaxe", 1);
 	const salt = new Object("salt", 5);
 	const gear = [];
-   gear.push(pickaxe);
-	 gear.push(salt);
-	 hunter.gear = gear;
+	gear.push(pickaxe);
+	gear.push(salt);
+	hunter.gear = gear;
 
 	ghost = new Ghost(
 		0,
@@ -120,8 +120,8 @@ function stageGameScene() {
 	gameScene.addChild(heartContainer);
 	gameScene.addChild(hunter.spriteContainer);
 	gameScene.addChild(ghost.spriteContainer);
-	
-  redrawToolContainer(hunter.gear);
+
+	redrawToolContainer(hunter.gear);
 
 	gameScene.addChild(toolContainer);
 	app.stage.addChild(gameScene);
@@ -303,7 +303,7 @@ export function createCharacterSprite(character) {
 	return animatedSprite;
 }
 
-function createToolContainer(slots){
+function createToolContainer(slots) {
 	for (let i = 0; i < slots; i++) {
 		let innerContainer = new Container();
 		toolContainer.addChild(innerContainer);
@@ -312,46 +312,42 @@ function createToolContainer(slots){
 }
 
 export function redrawToolContainer(items) {
-	
+
 	toolContainer.removeChildren();
-	createToolContainer(slots);
-	
+	createToolContainer(toolSlots);
+
 	const scale = 0.75;
-	const outerW = constants.tileSize * scale * slots;
+	const outerW = constants.tileSize * scale * toolSlots;
 	const outerH = constants.tileSize * scale;
-	let innerW = outerW / slots;
+	let innerW = outerW / toolSlots;
 	let innerH = outerH;
 	const x = constants.tileSize * constants.mapWidth / 2 - outerW / 2;
 	const y = constants.tileSize * (constants.mapHeight - 0.5);
 
 	let texture = loader.resources['images/slot.png'].texture;
 
-//	let outerContainer = new PIXI.Container();
+	toolContainer.x = x;
+	toolContainer.y = y;
 
-//	outerContainer.x = x;
-//	outerContainer.y = y;
-		toolContainer.x = x;
-		toolContainer.y = y;
+	for (let i = 0; i < toolSlots; i++) {
 
-	for (let i = 0; i < slots; i++) {
-     
-		 let innerContainer = toolContainer.getChildAt(i);
-		 		 
+		let innerContainer = toolContainer.getChildAt(i);
+
 		let innerContainerImage = new Sprite(texture);
 
 		innerContainerImage.anchor.set(0.5);
-		innerContainerImage.x = outerW / slots * i + innerW / 2;
+		innerContainerImage.x = outerW / toolSlots * i + innerW / 2;
 		innerContainerImage.width = innerW;
 		innerContainerImage.height = innerH;
 
 		innerContainer.addChild(innerContainerImage);
 
-		if (i < items.length){
+		if (i < items.length) {
 
 			const imagePath = 'images/' + items[i].name + '.png';
 
 			const texture = loader.resources[imagePath].texture;
-	
+
 			const element = new Sprite(texture);
 			const imageScale = 0.8;
 
@@ -360,13 +356,13 @@ export function redrawToolContainer(items) {
 			element.width = innerW * imageScale;
 			element.x = innerContainerImage.x;
 			element.y = innerContainerImage.y;
-	
+
 			let style = new PIXI.TextStyle({
 				fontFamily: 'Arial',
 				fontSize: 15,
 				fill: 'brown'
 			});
-	
+
 			const count = new PIXI.Text(items[i].count, style);
 			count.x = element.x;
 			count.y = element.y;
@@ -375,14 +371,47 @@ export function redrawToolContainer(items) {
 			innerContainer.addChild(count);
 
 		}
-		//outerContainer.addChild(innerContainer);
 	}
-  //return toolContainer;
-//	return outerContainer;
+}
+
+export function drawObjectsInMap(items, container) {
+	const tile = container.getChildAt(0);
+	container.removeChildren();
+	container.addChild(tile);
+	for (let i = 0; i < items.length; i++) {
+
+		// temporary need to decide how to store objects and map their names with image paths	
+		const imagePath = 'images/' + items[i].name + '.png';
+
+		const texture = loader.resources[imagePath].texture;
+
+		const element = new Sprite(texture);
+
+		const scale = 0.5;
+
+		element.anchor.set(0.5);
+
+		element.height = constants.tileSize * scale;
+		element.width = constants.tileSize * scale;
+		element.x = constants.tileSize / 2;
+		element.y = constants.tileSize / 2;
+		element.zIndex = 2 + i;
+		container.addChild(element);
+
+	}
+
+}
+export const mapContainer = new Container();
+
+function createTileContainers() {
+	for (let i = 0; i < constants.mapWidth * constants.mapHeight; i++) {
+		mapContainer.addChild(new Container());
+	}
 }
 
 
 function stageMap(textures, scene) {
+	createTileContainers(); 
 	for (let row = 0; row < constants.mapWidth; row++) {
 		for (let col = 0; col < constants.mapHeight; col++) {
 
@@ -398,38 +427,19 @@ function stageMap(textures, scene) {
 			tile.width = constants.tileSize;
 			tile.height = constants.tileSize;
 			tile.zIndex = 1;
-			const container = new Container();
-			container.y = row * constants.tileSize;
-			container.x = col * constants.tileSize;
-			container.addChild(tile);
+
+		//	const container = new Container();
+			const tileContainer = mapContainer.getChildAt(row*constants.mapWidth + col);
+			tileContainer.y = row * constants.tileSize;
+			tileContainer.x = col * constants.tileSize;
+			tileContainer.addChild(tile);
 
 			if (map[row][col].objects) {
 
 				const items = map[row][col].objects;
-
-				for (let i = 0; i < items.length; i++) {
-
-					// temporary need to decide how to store objects and map their names with image paths	
-					const imagePath = 'images/' + items[i].name + '.png';
-
-					const texture = loader.resources[imagePath].texture;
-
-					const element = new Sprite(texture);
-
-					const scale = 0.5;
-
-					element.anchor.set(0.5);
-
-					element.height = constants.tileSize * scale;
-					element.width = constants.tileSize * scale;
-					element.x = constants.tileSize / 2;
-					element.y = constants.tileSize / 2;
-					element.zIndex = 2+i;
-					container.addChild(element);
-
-				}
-			} 
-			scene.addChild(container);
+				drawObjectsInMap(items, tileContainer);
+			}
+			scene.addChild(mapContainer);
 		}
 	}
 }

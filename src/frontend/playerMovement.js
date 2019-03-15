@@ -1,4 +1,4 @@
-import { hunter, map, gameMetadata, end, initiatives, nextCharacter } from "./game.js";
+import { hunter, map, gameMetadata, mapContainer, drawObjectsInMap, end, initiatives, nextCharacter } from "./game.js";
 import * as constants from "./constants.js";
 import { keyboard } from "./keyboardControl.js";
 
@@ -46,23 +46,25 @@ space.press = function () {
 	if (map[hunter.y][hunter.x].objects) {
 		let objects = map[hunter.y][hunter.x].objects;
 		const gear = hunter.gear;
-	
-		for (let object of objects) {
-
+		let objectsCopy = objects.slice(0);
+		
+let spliced = 0;
+		for (let i=0; i < objects.length; i++) {
 			let existingObject = hunter.gear.find(function (element) {
-				return element.name == object.name;
+				return element.name == objects[i].name;
 			});
 
 			if (existingObject) {
-				existingObject.count += object.count;
+				existingObject.count += objects[i].count;
 			} else {
-				gear.push(object);
+				gear.push(objects[i]);
 			}
 			hunter.gear = gear;
-			// remove sprite from container // to DO
-			// updateCount in toolsContainer (in Hunter class done);
+			objectsCopy.splice(i-spliced, 1);
+			spliced++;
+			// not ideal but works 
 		}
-		objects = [];
+		drawObjectsInMap(objectsCopy, mapContainer.getChildAt(hunter.x*constants.mapWidth + hunter.y));
 		nextCharacter();
 	}
 }
